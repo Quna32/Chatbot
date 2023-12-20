@@ -64,9 +64,6 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Close map pop up
-            document.getElementById('closePopup').addEventListener('click', function () {
-                document.getElementById('mapPopup').style.display = 'none';
             });
 
             function sendMessage() {
@@ -110,7 +107,6 @@
                     chatContainer.classList.remove('chat-container-visible');
                     chatContainer.classList.add('chat-container-hidden');
                 }
-            });
         });
 </script>
 

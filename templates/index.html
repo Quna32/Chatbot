@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='app.css') }}">
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <title>Weather App</title>
+</head>
+
+<body>
+    <div id="mapPopup" class="map-popup">
+        <span id="closePopup" class="close-popup">&times;</span>
+        <iframe id="mapFrame" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+    <button id="chatToggle" class="chat-toggle-btn">Chat</button>
+    <div id="chat-container" class="chat-container-hidden">
+        <div id="chat-box"></div>
+        <input type="text" id="chat-input" placeholder="Do you need help with the weather?">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <div class="container">
+        <div class="header-container">
+            <h1>Weather App</h1>
+            <img class="temperature" src="{{ url_for('static', filename='temperature.JPG') }}" alt="Description of the image">
+        </div>
+
+        <table>
+            <tr>
+                <th>Location</th>
+                <th>Temperature (°C)</th>
+                <th>Condition</th>
+                <th>Map</th>
+            </tr>
+            {% for data in weather_data %}
+            <tr>
+                <td>{{ data.location }}</td>
+                <td>{{ data.temperature }}</td>
+                <td>{{ data.condition }}</td>
+                <td><button class="map-button" onclick="openMap('{{ data.location }}')">Open Map</button></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="button-container">
+            <form action="/" class="add-location" method="post">
+                <input type="text" name="location" placeholder="Type a location...">
+                <input type="submit" value="Add Location">
+            </form>
+
+            <a href="/clear" class="clear-btn">Clear</a>
+        </div>
+    </div>
+
+    <script>
+        // Google Maps API Integration in JavaScript:
+        function openMap(location) {
+            var googleMapsUrl = `https://www.google.com/maps/embed/v1/search?key=AIzaSyAcE0kfKUKlGVeZbzHIWUyxHUN1bELCpxw&q=${location}`;
+            document.getElementById('mapFrame').src = googleMapsUrl;
+            document.getElementById('mapPopup').style.display = 'block';
+        }
+            document.getElementById('closePopup').addEventListener('click', function() {
+            document.getElementById('mapPopup').style.display = 'none';
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Close map pop up
+            document.getElementById('closePopup').addEventListener('click', function () {
+                document.getElementById('mapPopup').style.display = 'none';
+            });
+
+            function sendMessage() {
+                var userInput = document.getElementById('chat-input').value;
+                if (!userInput.trim()) {
+                    return; // Don't send empty messages
+                }
+                fetch('/get-response', {
+                    method: 'POST',
+                    body: new URLSearchParams('text=' + userInput),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var chatBox = document.getElementById('chat-box');
+                    chatBox.innerHTML += '<div>User: ' + userInput + '</div>';
+                    chatBox.innerHTML += '<div>Bot: ' + data.bot_response + '</div>';
+                    document.getElementById('chat-input').value = ''; // Clear the input field
+
+                    // Scroll to the bottom of the chat box
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                });
+            }
+
+            // Event listener for the chat input to handle the Enter key
+            document.getElementById('chat-input').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent the default action of the Enter key
+                    sendMessage();
+                }
+            });
+
+            document.getElementById('chatToggle').addEventListener('click', function() {
+                var chatContainer = document.getElementById('chat-container');
+                if (chatContainer.classList.contains('chat-container-hidden')) {
+                    chatContainer.classList.remove('chat-container-hidden');
+                    chatContainer.classList.add('chat-container-visible');
+                } else {
+                    chatContainer.classList.remove('chat-container-visible');
+                    chatContainer.classList.add('chat-container-hidden');
+                }
+            });
+        });
+</script>
+
+</body>
+
+</html>
